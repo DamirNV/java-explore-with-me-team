@@ -1,4 +1,4 @@
-# Explore With Me
+# Explore With Me — командный Java Backend-проект
 
 Backend-сервис для публикации событий, подбора мероприятий и управления заявками на участие.
 
@@ -37,8 +37,7 @@ Backend-сервис для публикации событий, подбора 
 
 ## Описание проекта
 
-Explore With Me позволяет пользователям создавать события, подавать заявки на участие, модерировать публикации и
-получать подборки мероприятий.
+Explore With Me позволяет пользователям создавать события, подавать заявки на участие, модерировать публикации и получать подборки мероприятий.
 
 Проект разделён на несколько логических частей:
 
@@ -80,7 +79,7 @@ Explore With Me позволяет пользователям создавать
 - `Event` — событие
 - `Category` — категория события
 - `Compilation` — подборка событий
-- `ParticipationRequest` — заявка на участие
+- `Request` — заявка на участие
 - `Comment` — комментарий к событию (статусы: PENDING, PUBLISHED, REJECTED, DELETED)
 - `EndpointHit` — запись статистики обращения к endpoint
 
@@ -105,7 +104,7 @@ GET /events/{eventId}/comments/{commentId}
 POST /users/{userId}/events
 PATCH /users/{userId}/events/{eventId}
 GET /users/{userId}/events
-POST /users/{userId}/requests
+POST /users/{userId}/requests?eventId={eventId}
 PATCH /users/{userId}/requests/{requestId}/cancel
 POST /users/{userId}/events/{eventId}/comments
 PATCH /users/{userId}/comments/{commentId}
@@ -143,33 +142,43 @@ GET /stats
 
 ## Запуск проекта
 
-### Через Maven
+Требования: **Java 21, Maven и Docker с Docker Compose**.
+
+Сначала соберите JAR-файлы из корня репозитория. Это необходимо, потому что Dockerfile сервиса статистики копирует уже собранный файл из `target/`:
 
 ```bash
-mvn clean package
+mvn clean package -DskipTests
 ```
 
-### Через Docker Compose
+Затем запустите основное приложение, сервис статистики и две базы PostgreSQL:
 
 ```bash
-docker-compose up --build
+docker compose up --build
 ```
+
+Основной REST API будет доступен по адресу `http://localhost:8080`, статистика — `http://localhost:9090`.
+
+Остановка контейнеров:
+
+```bash
+docker compose down
+```
+
+> Сквозной запуск Docker Compose при подготовке этого README отдельно не проверялся.
 
 ## Проверка качества кода
 
-В проекте настроены инструменты статического анализа и проверки качества:
+В проекте есть **29 тестовых методов JUnit 5** в четырёх классах. Они проверяют контроллеры комментариев и часть бизнес-логики `CommentServiceImpl`.
+
+Команды для запуска тестов и дополнительных Maven-профилей:
 
 ```bash
 mvn clean test
-mvn clean package -P check
-mvn clean verify -P coverage
+mvn clean package -Pcheck
+mvn clean verify -Pcoverage
 ```
 
-Используются:
-
-- Checkstyle
-- SpotBugs
-- JaCoCo
+Используются **Checkstyle, SpotBugs и JaCoCo**. Наличие инструментов и тестов подтверждено исходным кодом; успешный запуск всех команд отдельно не подтверждался.
 
 ## Что демонстрирует проект
 
@@ -189,7 +198,7 @@ mvn clean verify -P coverage
 
 | Задача | Решение |
 |--------|---------|
-| Административный API | Реализовал CRUD операций для категорий, пользователей и подборок событий |
+| Административный API | Реализовал CRUD-операции для категорий, пользователей и подборок событий |
 | Docker-инфраструктура | Настроил контейнеризацию для ewm-service, stats-server, PostgreSQL |
 | Схема БД | Спроектировал и написал schema.sql для всех сущностей с индексами |
 | Обработка ошибок | Создал единый ErrorHandler с корректными статусами и форматом ApiError |
@@ -197,3 +206,5 @@ mvn clean verify -P coverage
 | Оптимизация N+1 | Добавил метод `countByEventIdsAndStatus` для массовой загрузки количества комментариев |
 
 ---
+
+[Другие Java-проекты](https://github.com/DamirNV)
